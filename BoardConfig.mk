@@ -100,6 +100,10 @@ TW_MAX_BRIGHTNESS := 255
 TW_DEFAULT_BRIGHTNESS := 120
 TW_EXCLUDE_TWRPAPP := true
 TW_INCLUDE_NTFS_3G := true
+TW_INCLUDE_NTFS_3G := false
+TW_EXCLUDE_NANO := true
+TW_EXCLUDE_TZDATA := true
+TW_EXCLUDE_PYTHON := true
 
 # Decryption is OFF on purpose: /data uses FBE (adiantum) and keymaster/gatekeeper
 # are Trusty TEE (itrusty) - not available in TWRP. See README.
