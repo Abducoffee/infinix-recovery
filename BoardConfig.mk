@@ -1,0 +1,105 @@
+#
+# Copyright (C) 2026 The Android Open Source Project
+# SPDX-License-Identifier: Apache-2.0
+#
+# BoardConfig for Infinix X657 (Infinix Smart 6 / MT6580 / Android 10, 32-bit)
+#
+
+DEVICE_PATH := device/infinix/X657
+
+# For building with minimal manifest
+ALLOW_MISSING_DEPENDENCIES := true
+
+# Architecture (MT6580 = 4x Cortex-A7, 32-bit kernel + 32-bit userspace)
+TARGET_ARCH := arm
+TARGET_ARCH_VARIANT := armv7-a-neon
+TARGET_CPU_ABI := armeabi-v7a
+TARGET_CPU_ABI2 := armeabi
+TARGET_CPU_VARIANT := cortex-a7
+TARGET_CPU_VARIANT_RUNTIME := cortex-a7
+
+TARGET_USES_64_BIT_BINDER := true
+
+# APEX
+OVERRIDE_TARGET_FLATTEN_APEX := true
+
+# Bootloader / platform
+TARGET_BOOTLOADER_BOARD_NAME := Infinix-X657
+TARGET_NO_BOOTLOADER := true
+TARGET_BOARD_PLATFORM := mt6580
+TARGET_OTA_ASSERT_DEVICE := X657,Infinix-X657,x657_h8030
+
+# Display
+TARGET_SCREEN_DENSITY := 320
+
+# Kernel (prebuilt from stock recovery) - values copied from the stock boot header
+BOARD_BOOTIMG_HEADER_VERSION := 2
+BOARD_KERNEL_BASE := 0x80000000
+BOARD_KERNEL_PAGESIZE := 2048
+BOARD_KERNEL_CMDLINE := bootopt=64S3,32S1,32S1 buildvariant=user
+BOARD_KERNEL_IMAGE_NAME := zImage
+BOARD_RAMDISK_OFFSET := 0x04000000
+BOARD_KERNEL_TAGS_OFFSET := 0x0e000000
+BOARD_DTB_OFFSET := 0x0e000000
+BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOTIMG_HEADER_VERSION)
+BOARD_MKBOOTIMG_ARGS += --kernel_offset 0x00008000
+BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
+BOARD_MKBOOTIMG_ARGS += --second_offset 0x00f00000
+BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)
+BOARD_MKBOOTIMG_ARGS += --dtb_offset $(BOARD_DTB_OFFSET)
+
+TARGET_FORCE_PREBUILT_KERNEL := true
+TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/kernel
+TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb.img
+BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB)
+BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilt/dtbo.img
+BOARD_INCLUDE_RECOVERY_DTBO := true
+
+# Ramdisk: the stock kernel only has CONFIG_RD_GZIP -> do NOT enable LZMA/LZ4 ramdisk
+# BOARD_RAMDISK_USE_LZMA := true   # would NOT boot on this kernel
+
+# Partitions (sizes from the scatter file)
+BOARD_FLASH_BLOCK_SIZE := 131072
+BOARD_BOOTIMAGE_PARTITION_SIZE := 16777216
+BOARD_RECOVERYIMAGE_PARTITION_SIZE := 16777216
+BOARD_HAS_LARGE_FILESYSTEM := true
+BOARD_SYSTEMIMAGE_PARTITION_TYPE := ext4
+BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
+BOARD_PRODUCTIMAGE_FILE_SYSTEM_TYPE := ext4
+BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := f2fs
+TARGET_COPY_OUT_VENDOR := vendor
+TARGET_COPY_OUT_PRODUCT := product
+TARGET_USERIMAGES_USE_EXT4 := true
+TARGET_USERIMAGES_USE_F2FS := true
+
+# Dynamic partitions: super = 0xC2800000 bytes in the scatter file
+BOARD_SUPER_PARTITION_SIZE := 3263168512
+BOARD_SUPER_PARTITION_GROUPS := infinix_dynamic_partitions
+BOARD_INFINIX_DYNAMIC_PARTITIONS_PARTITION_LIST := system vendor product
+BOARD_INFINIX_DYNAMIC_PARTITIONS_SIZE := 3258974208
+
+# Recovery has its own ramdisk (separate recovery partition, non-A/B)
+BOARD_BUILD_SYSTEM_ROOT_IMAGE := false
+TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery.fstab
+TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
+RECOVERY_SDCARD_ON_DATA := true
+
+# Security patch hack (stops TWRP from being rejected by keymaster / anti-rollback)
+PLATFORM_VERSION := 16.1.0
+PLATFORM_SECURITY_PATCH := 2099-12-31
+VENDOR_SECURITY_PATCH := 2099-12-31
+
+# TWRP configuration
+TW_DEVICE_VERSION := 1
+TW_THEME := portrait_hdpi
+TW_EXTRA_LANGUAGES := false
+TW_SCREEN_BLANK_ON_BOOT := true
+TW_USE_TOOLBOX := true
+TW_BRIGHTNESS_PATH := "/sys/class/leds/lcd-backlight/brightness"
+TW_MAX_BRIGHTNESS := 255
+TW_DEFAULT_BRIGHTNESS := 120
+TW_EXCLUDE_TWRPAPP := true
+TW_INCLUDE_NTFS_3G := true
+
+# Decryption is OFF on purpose: /data uses FBE (adiantum) and keymaster/gatekeeper
+# are Trusty TEE (itrusty) - not available in TWRP. See README.
